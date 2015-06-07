@@ -17,6 +17,9 @@
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_marginLeft="10dp"
-        android:text="Power socket" />
+        android:text="Power socket"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textOff="OFF"
+        android:textOn="ON" />
 
 </LinearLayout>
