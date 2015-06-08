@@ -26,15 +26,15 @@ import android.widget.TextView;
 @SuppressLint("InflateParams")
 public class ActivityMain extends Activity implements OnClickListener {
 
-	Button				send;
-	ImageView			serverStatus;
-	Server				server;
-	Handler				serverHandler;
+	Button send;
+	ImageView serverStatus;
+	Server server;
+	Handler serverHandler;
 
-	SharedPreferences	preferences;
-	TextView			status, debug, list;
-	LinearLayout		devList;
-	String				serverName	= "";
+	SharedPreferences preferences;
+	TextView status, debug, list;
+	LinearLayout devList;
+	String serverName = "";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -92,34 +92,34 @@ public class ActivityMain extends Activity implements OnClickListener {
 
 	// Apdoroja þinutes, gautas ið serverio
 	@SuppressLint("HandlerLeak")
-	public Handler	uiHandler	= new Handler() {
-									@Override
-									public void handleMessage(Message msg) {
-										C.Type type = C.Type.values()[msg.what];
+	public Handler uiHandler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			C.Type type = C.Type.values()[msg.what];
 
-										switch (type) {
-										case STATUS:
-											if (msg.arg1 == 1)
-												setServerStatus(1);
-											else
-												setServerStatus(0);
-											break;
-										case INFO:
-											serverName = msg.getData().getString("Server");
-											status.append(" (" + serverName + ")");
-											break;
-										case OTHER:
-											if (msg.getData().get("Server") == "Disconnected")
-												reconnect();
-											else {
-												String json = msg.getData().getString("Server");
-												list.setText(json + '\n' + list.getText());
-												parse(json);
-											}
-											break;
-										}
-									};
-								};
+			switch (type) {
+			case STATUS:
+				if (msg.arg1 == 1)
+					setServerStatus(1);
+				else
+					setServerStatus(0);
+				break;
+			case INFO:
+				serverName = msg.getData().getString("Server");
+				status.append(" (" + serverName + ")");
+				break;
+			case OTHER:
+				if (msg.getData().get("Server") == "Disconnected")
+					reconnect();
+				else {
+					String json = msg.getData().getString("Server");
+					list.setText(json + '\n' + list.getText());
+					parse(json);
+				}
+				break;
+			}
+		};
+	};
 
 	private void sendToServer(String text) {
 		if (server != null && server.getStatus() != 0) {
@@ -158,7 +158,7 @@ public class ActivityMain extends Activity implements OnClickListener {
 	// }
 	// status.setText(reason);
 	// }
-	Boolean	a	= false;
+	Boolean a = false;
 
 	@Override
 	public void onClick(View v) {
@@ -172,35 +172,37 @@ public class ActivityMain extends Activity implements OnClickListener {
 			return;
 		try {
 			JSONObject FullJson = new JSONObject(jsonText);
-			String id = FullJson.names().getString(0);
-			JSONObject json = FullJson.getJSONObject(id);
-			String type = json.getString("type");
-			Log.v("JSON", json.toString());
-			if (type.equals("device")) {
-				String alias = json.getString("alias");
-				;
-				if (id.charAt(0) == 'R') {
-					Boolean relay = (json.getInt("relay") == 1) ? true : false;
-					addSocket(new Socket(id, alias, relay));
-				} else if (id.charAt(0) == 'T') {
-					String temp = json.getString("temp");
-					addTemp(new Temp(id, alias, temp));
-				}
 
-			} else if (type.equals("del_device")) {
-				removeDevice(id);
-			} else if (type.equals("changed")) {
-				if (id.charAt(0) == 'R') {
-					Boolean relay = (json.getInt("relay") == 1) ? true : false;
-					Switch switch1 = (Switch) devList.findViewWithTag(id).findViewById(R.id.switch1);
-					switch1.setChecked(relay);
-				} else if (id.charAt(0) == 'T') {
-					String temp = json.getString("temp");
-					TextView value = (TextView) devList.findViewWithTag(id).findViewById(R.id.value);
-					value.setText(temp);
+			for (int i = 0; i < FullJson.names().length(); i++) {
+				String id = FullJson.names().getString(i);
+				JSONObject json = FullJson.getJSONObject(id);
+				String type = json.getString("type");
+				Log.v("JSON", json.toString());
+				if (type.equals("device")) {
+					String alias = json.getString("alias");
+					;
+					if (id.charAt(0) == 'R') {
+						Boolean relay = (json.getInt("relay") == 1) ? true : false;
+						addSocket(new Socket(id, alias, relay));
+					} else if (id.charAt(0) == 'T') {
+						String temp = json.getString("temp");
+						addTemp(new Temp(id, alias, temp));
+					}
+
+				} else if (type.equals("del_device")) {
+					removeDevice(id);
+				} else if (type.equals("changed")) {
+					if (id.charAt(0) == 'R') {
+						Boolean relay = (json.getInt("relay") == 1) ? true : false;
+						Switch switch1 = (Switch) devList.findViewWithTag(id).findViewById(R.id.switch1);
+						switch1.setChecked(relay);
+					} else if (id.charAt(0) == 'T') {
+						String temp = json.getString("temp");
+						TextView value = (TextView) devList.findViewWithTag(id).findViewById(R.id.value);
+						value.setText(temp);
+					}
 				}
 			}
-
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -216,7 +218,7 @@ public class ActivityMain extends Activity implements OnClickListener {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				int relay = (isChecked) ? 1 : 0;
-				String data = "{\""+socket.getId()+"\":{\"type\":\"request\",\"relay\":" + relay + "}}";
+				String data = "{\"" + socket.getId() + "\":{\"type\":\"request\",\"relay\":" + relay + "}}";
 				sendToServer(data);
 			}
 		});
